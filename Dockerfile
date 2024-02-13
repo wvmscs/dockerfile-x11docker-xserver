@@ -55,22 +55,22 @@ RUN apt-get update && \
 RUN apt-get update && \
     env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         kwin-wayland \
-        kwin-wayland-backend-drm \
-        kwin-wayland-backend-wayland \
-        kwin-wayland-backend-x11 \
+        #kwin-wayland-backend-drm \
+        #kwin-wayland-backend-wayland \
+        #kwin-wayland-backend-x11 \
         weston \
         xserver-xephyr \
         xserver-xorg \
         xserver-xorg-legacy \
         xvfb \
         xserver-xorg-video-all \
-        xwayland && \
+        xwayland wayfire && \
     /apt_cleanup
 
 # xpra from xpra repository
 RUN apt-get update && \
     env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        wget \
+        wget sudo \
         gnupg \
         ca-certificates && \
     wget -qO- https://xpra.org/xpra.asc |sudo cat >/etc/apt/trusted.gpg.d/xpra.asc && \
