@@ -74,15 +74,15 @@ RUN apt-get update && \
         gnupg \
         ca-certificates && \
     wget -qO- https://xpra.org/xpra.asc |sudo cat >/etc/apt/trusted.gpg.d/xpra.asc && \
-    cat <<EOF >/etc/apt/sources.list.d/xpra.sources 
-#deb http://xpra.org/ bookworm main" > /etc/apt/sources.list.d/xpra.list
-Types: deb
-URIs: https://xpra.org
-Suites: bookworm
-Components: main
-Signed-By: /etc/apt/trusted.gpg.d/xpra.asc
-Architectures: amd64 arm64
-EOF && \
+    echo '\
+#deb http://xpra.org/ bookworm main > /etc/apt/sources.list.d/xpra.list\n\
+Types: deb\n\
+URIs: https://xpra.org\n\
+Suites: bookworm\n\
+Components: main\n\
+Signed-By: /etc/apt/trusted.gpg.d/xpra.asc\n\
+Architectures: amd64 arm64 '\
+>/etc/apt/sources.list.d/xpra.sources  && \
     apt-get update && \
     env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         xpra  \
