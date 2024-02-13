@@ -15,14 +15,13 @@ FROM debian:bookworm-slim AS nxbuild
 
 # build patched nxagent from source. Allows to run with /tmp/.X11-unix not to be owned by root.
 # https://github.com/ArcticaProject/nx-libs/issues/1034
-RUN cat <<EOF >/etc/apt/sources.list.d/debian_src.sources 
-#deb-src http://deb.debian.org/debian bookworm main
-Types: deb-src
-URIs: http://deb.debian.org/debian
-Suites: bookworm bookworm-updates
-Components: main
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
-EOF \
+RUN echo  '#deb-src http://deb.debian.org/debian bookworm main\n\
+Types: deb-src\n\
+URIs: http://deb.debian.org/debian\n\
+Suites: bookworm bookworm-updates\n\
+Components: main\n\
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' \
+>/etc/apt/sources.list.d/debian_src.sources \
     && apt-get update && \
     env DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential devscripts && \
     env DEBIAN_FRONTEND=noninteractive apt-get build-dep -y nxagent && \
