@@ -9,16 +9,23 @@
 #
 # x11docker on github: https://github.com/mviereck/x11docker
 
-FROM debian:bullseye AS nxbuild
+FROM debian:bookworm-slim AS nxbuild
 
 #########################
 
 # build patched nxagent from source. Allows to run with /tmp/.X11-unix not to be owned by root.
 # https://github.com/ArcticaProject/nx-libs/issues/1034
-RUN echo "deb-src http://deb.debian.org/debian bullseye main" >> /etc/apt/sources.list && \
-    apt-get update && \
-    apt-get install -y build-essential devscripts && \
-    apt-get build-dep -y nxagent && \
+RUN cat <<EOF >/etc/apt/sources.list.d/debian_src.sources 
+#deb-src http://deb.debian.org/debian bookworm main
+Types: deb-src
+URIs: http://deb.debian.org/debian
+Suites: bookworm bookworm-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF \
+    && apt-get update && \
+    env DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential devscripts && \
+    env DEBIAN_FRONTEND=noninteractive apt-get build-dep -y nxagent && \
     mkdir /nxbuild && \
     cd /nxbuild && \
     apt-get source nxagent && \
@@ -26,7 +33,7 @@ RUN echo "deb-src http://deb.debian.org/debian bullseye main" >> /etc/apt/source
     sed -i 's/# define XtransFailSoft NO/# define XtransFailSoft YES/' nx-X11/config/cf/X11.rules && \
     debuild -b -uc -us
 
-FROM debian:bullseye
+FROM debian:bookworm-slim 
 COPY --from=nxbuild /nxbuild/nxagent_3.*.deb /nxagent.deb
 
 # cleanup script for use after apt-get
@@ -57,6 +64,7 @@ RUN apt-get update && \
         xserver-xorg \
         xserver-xorg-legacy \
         xvfb \
+        xserver-xorg-video-all \
         xwayland && \
     /apt_cleanup
 
@@ -66,9 +74,16 @@ RUN apt-get update && \
         wget \
         gnupg \
         ca-certificates && \
-    wget -q http://xpra.org/gpg.asc -O xpra-gpg.asc && \
-    apt-key add xpra-gpg.asc && \
-    echo "deb http://xpra.org/ bullseye main" > /etc/apt/sources.list.d/xpra.list && \
+    wget -qO- https://xpra.org/xpra.asc |sudo cat >/etc/apt/trusted.gpg.d/xpra.asc && \
+    cat <<EOF >/etc/apt/sources.list.d/xpra.sources 
+#deb http://xpra.org/ bookworm main" > /etc/apt/sources.list.d/xpra.list
+Types: deb
+URIs: https://xpra.org
+Suites: bookworm
+Components: main
+Signed-By: /etc/apt/trusted.gpg.d/xpra.asc
+Architectures: amd64 arm64
+EOF && \
     apt-get update && \
     env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         xpra  \
